@@ -2,63 +2,64 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
-
     [Header("References")]
     [SerializeField]
-    private GameObject startPromptObject;  // Displayed when waiting for initial start
+    private GameObject startPromptObject; // Displayed while idle, waiting for first trigger
+
     [SerializeField]
-    private GameObject shrinkingObject;    // Displayed during Wait/Shrink phases
+    private GameObject blinkerObject; // Displayed ONLY during the reaction window
+
     [SerializeField]
-    private GameObject loseObject;         // Displayed on Loss
+    private GameObject loseObject; // Blinked on loss
 
     [Header("Settings")]
     [SerializeField]
-    private float minWaitTime = 2.0f; 
-    [SerializeField]
-    private float maxWaitTime = 5.0f; 
+    private float minWaitTime = 2.0f;
 
     [SerializeField]
-    private float initialReactionDuration = 1.0f; 
-  
+    private float maxWaitTime = 5.0f;
 
-    
     [SerializeField]
-    private float lossCooldownTime = 2.0f; 
+    private float initialReactionDuration = 1.0f;
 
-    float currentReactionDuration; 
+    [Header("Loss Blink")]
+    [SerializeField]
+    private float lossCooldownTime = 2.0f; // Total time spent in cooldown
+
+    [SerializeField]
+    private float blinkInterval = 0.15f; // Half-period of the blink
+
+    float currentReactionDuration;
     private float stateTimer;
-    private float cooldownTimer; 
+    private float cooldownTimer;
+    private float blinkTimer;
+    private bool blinkOn;
 
-    // Reusable vector to avoid memory allocation
     private Vector3 currentScaleVec;
-    private Vector3 initalScaleVec; 
+    private Vector3 initalScaleVec;
 
     private enum GameState
     {
-        Idle,        // Waiting for first trigger (Show Start Prompt)
-        Waiting,     // Random delay before shrink (Show Shrinking Object)
-        Active,      // Shrinking phase (Show Shrinking Object)
-        Cooldown     // After loss (Show Lose Object)
+        Idle, // Waiting for first trigger (Show Start Prompt)
+        Waiting, // Random delay before the window opens (nothing shown)
+        Active, // Reaction window open (Show Blinker Object)
+        Cooldown, // After loss (Blink Lose Object)
     }
 
     private GameState currentState = GameState.Idle;
 
-    void Awake()
+    protected  void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        
     }
 
     void Start()
     {
-        initalScaleVec = shrinkingObject.transform.localScale;
+        initalScaleVec = blinkerObject.transform.localScale;
         ResetGame();
     }
 
-    public void Trigger()
+    public  void Trigger()
     {
         // Ignore input during cooldown
         if (currentState == GameState.Cooldown)
@@ -70,53 +71,57 @@ public class GameManager : MonoBehaviour
                 StartRound();
                 break;
             case GameState.Waiting:
-                Lose(); 
+                Lose(); // Clicked too early
                 break;
             case GameState.Active:
-                WinRound(); 
-                break;
-            case GameState.Cooldown:
-                // Handled by timer, no trigger needed
+                WinRound(); // Clicked inside the window
                 break;
         }
     }
 
     private void StartRound()
     {
+        currentScaleVec = initalScaleVec;
+        blinkerObject.transform.localScale = currentScaleVec;
+
         // Increase difficulty
         currentReactionDuration *= 0.75f;
 
         currentState = GameState.Waiting;
         stateTimer = Random.Range(minWaitTime, maxWaitTime);
 
-        // Update Visibility: Show Shrinking Object, Hide others
+        // Nothing is shown during the wait — the player must not click yet
         SetVisibility(startPromptObject, false);
         SetVisibility(loseObject, false);
-        SetVisibility(shrinkingObject, true);
-
-        // Reset shrinking object scale
-        currentScaleVec = initalScaleVec;
-        shrinkingObject.transform.localScale = currentScaleVec;
+        SetVisibility(blinkerObject, false);
     }
 
-    void Update()
+    protected  void Update()
     {
         float dt = Time.deltaTime;
 
-        // --- COOLDOWN LOGIC ---
+        // --- COOLDOWN / BLINK LOGIC ---
         if (currentState == GameState.Cooldown)
         {
             cooldownTimer -= dt;
+            blinkTimer -= dt;
+
+            if (blinkTimer <= 0f)
+            {
+                blinkOn = !blinkOn;
+                blinkTimer = blinkInterval;
+                SetVisibility(loseObject, blinkOn);
+            }
+
             if (cooldownTimer <= 0)
             {
                 // Cooldown finished, return to Idle
                 currentState = GameState.Idle;
-                
-                // Update Visibility: Show Start Prompt, Hide others
+
                 SetVisibility(loseObject, false);
-                SetVisibility(shrinkingObject, false);
+                SetVisibility(blinkerObject, true);
                 SetVisibility(startPromptObject, true);
-                
+
                 // Reset difficulty
                 currentReactionDuration = initialReactionDuration;
             }
@@ -129,45 +134,43 @@ public class GameManager : MonoBehaviour
             stateTimer -= dt;
             if (stateTimer <= 0)
             {
-                BeginShrinking();
+                BeginWindow();
             }
         }
 
-        // --- ACTIVE (SHRINKING) LOGIC ---
+        // --- ACTIVE (REACTION WINDOW) LOGIC ---
         if (currentState == GameState.Active)
         {
             stateTimer += dt;
 
             float t = Mathf.Clamp01(stateTimer / currentReactionDuration);
-            
+
             // Calculate scale without 'new'
 
             currentScaleVec = initalScaleVec * (1f - t);
-            
-            shrinkingObject.transform.localScale = currentScaleVec;
+
+            blinkerObject.transform.localScale = currentScaleVec;
 
             if (t >= 1f)
             {
-                shrinkingObject.SetActive(false);
-                Lose(); // Too late
+                blinkerObject.SetActive(false);
+                Lose(); // Window closed without a click
             }
         }
     }
 
-    private void BeginShrinking()
+    private void BeginWindow()
     {
         currentState = GameState.Active;
         stateTimer = 0f;
-        
-        // Visibility remains the same (Shrinking Object is already visible)
-        // But we ensure it's active just in case
-        shrinkingObject.SetActive(true);
+
+        // Show the blinker only now — this is the player's cue to click
+        SetVisibility(blinkerObject, true);
     }
 
     private void WinRound()
     {
-        initalScaleVec = initalScaleVec * 1.25f;
-        shrinkingObject.SetActive(false);
+        blinkerObject.SetActive(false);
         StartRound(); // Immediately start next round
     }
 
@@ -175,9 +178,12 @@ public class GameManager : MonoBehaviour
     {
         currentState = GameState.Cooldown;
         cooldownTimer = lossCooldownTime;
-        
-        // Update Visibility: Show Lose Object, Hide others
-        SetVisibility(shrinkingObject, false);
+
+        // Start the blink cycle
+        blinkTimer = blinkInterval;
+        blinkOn = true;
+
+        SetVisibility(blinkerObject, false);
         SetVisibility(startPromptObject, false);
         SetVisibility(loseObject, true);
     }
@@ -187,17 +193,13 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Idle;
         currentReactionDuration = initialReactionDuration;
 
-        // Update Visibility: Show Start Prompt
-        SetVisibility(loseObject, false);
-        SetVisibility(shrinkingObject, false);
-        SetVisibility(startPromptObject, true);
-
-        // Reset shrinking object scale for future use
         currentScaleVec = initalScaleVec;
-        if (shrinkingObject != null)
-        {
-            shrinkingObject.transform.localScale = currentScaleVec;
-        }
+
+        blinkerObject.transform.localScale = initalScaleVec;
+
+        SetVisibility(loseObject, false);
+        SetVisibility(blinkerObject, true);
+        SetVisibility(startPromptObject, true);
     }
 
     // Helper to safely toggle active state

@@ -358,7 +358,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "APPUYEZ POUR D\xC9MARRER"
+  m_text: APPUYEZ POUR JOUER
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f722123042fe3444a809ef02e04d5b26, type: 2}
   m_sharedMaterial: {fileID: 849064079512011183, guid: f722123042fe3444a809ef02e04d5b26, type: 2}
@@ -705,7 +705,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1436922888}
-  - component: {fileID: 1436922887}
+  - component: {fileID: 1436922889}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -713,26 +713,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1436922887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1436922886}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a5e6ffb2ac7e4d49ad2d473a20f519d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  startPromptObject: {fileID: 404447953}
-  shrinkingObject: {fileID: 218419341}
-  loseObject: {fileID: 775337475}
-  minWaitTime: 2
-  maxWaitTime: 5
-  initialReactionDuration: 1
-  shrinkingObjectInitialSize: 3
-  lossCooldownTime: 2
 --- !u!4 &1436922888
 Transform:
   m_ObjectHideFlags: 0
@@ -748,6 +728,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1436922889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436922886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2def4c4441bb247dd9b1d0e582f421dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startPromptObject: {fileID: 404447953}
+  blinkerObject: {fileID: 218419341}
+  loseObject: {fileID: 775337475}
+  minWaitTime: 2
+  maxWaitTime: 5
+  initialReactionDuration: 1
+  lossCooldownTime: 2
+  blinkInterval: 0.15
 --- !u!1 &1663610466
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,7 +829,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8d15364b7ab340b1a35063b387fffc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 1436922887}
+  gameManager: {fileID: 1436922889}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ public class InputManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if ( Input.GetMouseButtonDown(0 ))
+        if ( Input.GetMouseButtonDown(0 ) || Input.GetKeyDown(KeyCode.Space))
         {
             gameManager.Trigger();
         }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -88,7 +89,7 @@ public class GameManager : MonoBehaviour
         currentReactionDuration *= 0.75f;
 
         currentState = GameState.Waiting;
-        stateTimer = Random.Range(minWaitTime, maxWaitTime);
+        stateTimer = UnityEngine.Random.Range(minWaitTime, maxWaitTime);
 
         // Nothing is shown during the wait — the player must not click yet
         SetVisibility(startPromptObject, false);
@@ -125,7 +126,6 @@ public class GameManager : MonoBehaviour
                 // Reset difficulty
                 currentReactionDuration = initialReactionDuration;
             }
-            return;
         }
 
         // --- WAITING LOGIC ---
@@ -157,6 +157,8 @@ public class GameManager : MonoBehaviour
                 Lose(); // Window closed without a click
             }
         }
+
+    
     }
 
     private void BeginWindow()
@@ -172,6 +174,12 @@ public class GameManager : MonoBehaviour
     {
         blinkerObject.SetActive(false);
         StartRound(); // Immediately start next round
+    }
+
+    public bool GetUIElementVisible()
+    {
+        bool atLeastOneUIElementVisible = blinkerObject.activeInHierarchy || startPromptObject.activeInHierarchy || loseObject.activeInHierarchy;
+        return atLeastOneUIElementVisible;
     }
 
     private void Lose()
@@ -205,7 +213,6 @@ public class GameManager : MonoBehaviour
     // Helper to safely toggle active state
     private void SetVisibility(GameObject obj, bool active)
     {
-        if (obj != null)
             obj.SetActive(active);
     }
 }

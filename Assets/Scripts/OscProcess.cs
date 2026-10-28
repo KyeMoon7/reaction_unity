@@ -9,6 +9,9 @@ public class OscProcess : MonoBehaviour
     public extOSC.OSCReceiver oscReceiver;
     public extOSC.OSCTransmitter oscTransmitter;
     // Start is called before the first frame update
+
+
+
     void Start()
     {
         oscReceiver.Bind("/but0", TraiterMessageBut0);
@@ -17,7 +20,10 @@ public class OscProcess : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (gameManager.GetUIElementVisible())
+        {
+        
+        }
     }
     void TraiterMessageBut0(OSCMessage message)
     {
